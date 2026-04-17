@@ -2,7 +2,7 @@ const router = require('express').Router();
 const supabase = require('../supabase');
 const auth = require('../middleware/auth');
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 router.get('/', auth, async (req, res) => {
   const { data, error } = await supabase

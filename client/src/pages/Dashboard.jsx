@@ -68,7 +68,7 @@ export default function Dashboard({ token, username, onLogout }) {
           ))}
         </div>
 
-        <TransactionPanel token={token} account={activeAccount} onClose={() => setActiveAccount(null)} />
+        <TransactionPanel key={activeAccount?.id ?? 'none'} token={token} account={activeAccount} onClose={() => setActiveAccount(null)} />
       </div>
     </div>
   );

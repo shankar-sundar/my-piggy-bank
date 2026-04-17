@@ -3,7 +3,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import * as XLSX from 'xlsx';
 
-const PAGE_SIZE = 20;
+const PAGE_SIZE = 10;
 
 export default function TransactionPanel({ token, account, onClose }) {
   const [data, setData] = useState(null);
@@ -12,12 +12,7 @@ export default function TransactionPanel({ token, account, onClose }) {
 
   useEffect(() => {
     if (!account) return;
-    setPage(1);
     setData(null);
-  }, [account?.id]);
-
-  useEffect(() => {
-    if (!account) return;
     fetch(`/api/accounts/${account.id}/transactions?page=${page}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
@@ -38,7 +33,7 @@ export default function TransactionPanel({ token, account, onClose }) {
       Description: t.description,
       Reference: t.reference,
       Type: t.type,
-      Amount: t.type === 'credit' ? t.amount : -t.amount,
+      Amount: t.type === 'credit' ? Number(t.amount) : -Number(t.amount),
     }));
     const ws = XLSX.utils.json_to_sheet(rows);
     const wb = XLSX.utils.book_new();
@@ -59,7 +54,7 @@ export default function TransactionPanel({ token, account, onClose }) {
         t.description,
         t.reference,
         t.type.toUpperCase(),
-        `${t.type === 'credit' ? '+' : '-'}$${t.amount.toFixed(2)}`,
+        `${t.type === 'credit' ? '+' : '-'}$${Number(t.amount).toFixed(2)}`,
       ]),
       styles: { fontSize: 9 },
       headStyles: { fillColor: [79, 70, 229] },
@@ -122,7 +117,7 @@ export default function TransactionPanel({ token, account, onClose }) {
                         <span className={`txn-type-badge type-${t.type}`}>{t.type}</span>
                       </td>
                       <td className={t.type === 'credit' ? 'amount-credit' : 'amount-debit'}>
-                        ${t.amount.toFixed(2)}
+                        ${Number(t.amount).toFixed(2)}
                       </td>
                     </tr>
                   ))}
@@ -132,14 +127,16 @@ export default function TransactionPanel({ token, account, onClose }) {
 
             <div className="pagination">
               <div className="pagination-info">
-                Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, data.total)} of {data.total} transactions
+                {data.total === 0
+                  ? 'No transactions found'
+                  : `Showing ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, data.total)} of ${data.total} transactions`}
               </div>
               <div className="pagination-controls">
                 <button className="btn-page" disabled={page === 1} onClick={() => setPage(p => p - 1)}>‹</button>
                 {Array.from({ length: data.totalPages }, (_, i) => i + 1).map(p => (
                   <button key={p} className={`btn-page${p === page ? ' active' : ''}`} onClick={() => setPage(p)}>{p}</button>
                 ))}
-                <button className="btn-page" disabled={page === data.totalPages} onClick={() => setPage(p => p + 1)}>›</button>
+                <button className="btn-page" disabled={page >= data.totalPages} onClick={() => setPage(p => p + 1)}>›</button>
               </div>
             </div>
           </>
