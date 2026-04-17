@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Piggy Bank</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f0f4f8;
+      --card: #ffffff;
+      --surface: #fafbfc;
+      --surface-hover: #f1f5f9;
+      --primary: #4f46e5;
+      --primary-dark: #3730a3;
+      --primary-subtle: #eef2ff;
+      --spend: #ef4444;
+      --save: #10b981;
+      --share: #f59e0b;
+      --total: #4f46e5;
+      --text: #1e293b;
+      --muted: #64748b;
+      --border: #e2e8f0;
+      --green: #16a34a;
+      --green-subtle: #dcfce7;
+      --green-text: #166534;
+      --red: #dc2626;
+      --red-subtle: #fee2e2;
+      --red-text: #991b1b;
+      --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 4px 16px rgba(0,0,0,0.06);
+      --radius: 16px;
+      --tile-spend-icon-bg: #fef2f2;
+      --tile-save-icon-bg:  #ecfdf5;
+      --tile-share-icon-bg: #fffbeb;
+      --tile-total-icon-bg: #eef2ff;
+      --badge-spend-bg: #fef2f2;
+      --badge-save-bg:  #ecfdf5;
+      --badge-share-bg: #fffbeb;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --surface: #263347;
+      --surface-hover: #2d3d54;
+      --primary: #818cf8;
+      --primary-dark: #6366f1;
+      --primary-subtle: #1e1b4b;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --border: #334155;
+      --green: #4ade80;
+      --green-subtle: #14532d;
+      --green-text: #86efac;
+      --red: #f87171;
+      --red-subtle: #450a0a;
+      --red-text: #fca5a5;
+      --shadow: 0 1px 3px rgba(0,0,0,0.3), 0 4px 16px rgba(0,0,0,0.25);
+      --tile-spend-icon-bg: #2d1515;
+      --tile-save-icon-bg:  #052e16;
+      --tile-share-icon-bg: #2d1f00;
+      --tile-total-icon-bg: #1e1b4b;
+      --badge-spend-bg: #2d1515;
+      --badge-save-bg:  #052e16;
+      --badge-share-bg: #2d1f00;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .login-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 48px 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      transition: background 0.3s;
+      position: relative;
+    }
+
+    .login-logo {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .login-logo .pig {
+      font-size: 52px;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    /* ── THEME TOGGLE ── */
+    .theme-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      color: var(--muted);
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+    .theme-toggle:hover { background: var(--surface-hover); color: var(--text); }
+
+    .login-theme-toggle {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+    }
+
+    .login-logo h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .login-logo p {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .form-group input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-size: 15px;
+      color: #000000 !important;
+      background-color: #ffffff !important;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus {
+      border-color: var(--primary);
+    }
+
+    .login-error {
+      background: #fef2f2;
+      color: var(--red);
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 13px;
+      background: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .login-hint {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── DASHBOARD ── */
+    #dashboard-screen { display: none; min-height: 100vh; }
+
+    .topbar {
+      background: var(--card);
+      border-bottom: 1px solid var(--border);
+      padding: 0 32px;
+      height: 64px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .topbar-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .topbar-left .pig { font-size: 26px; }
+    .topbar-left h1 { font-size: 18px; font-weight: 700; color: var(--text); }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .greeting { font-size: 14px; color: var(--muted); }
+    .greeting strong { color: var(--text); }
+
+    .btn-logout {
+      padding: 7px 16px;
+      background: transparent;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-logout:hover { border-color: var(--red); color: var(--red); }
+
+    .main-content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 36px 24px 60px;
+    }
+
+    .section-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    /* ── TILES ── */
+    .tile-total-wrap {
+      margin-bottom: 16px;
+    }
+
+    .tile.total {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      padding: 28px 32px;
+    }
+
+    .total-left { display: flex; align-items: center; gap: 20px; }
+    .total-right { text-align: right; }
+
+    .tile.total .tile-balance {
+      font-size: 38px;
+    }
+
+    .accounts-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 14px;
+      padding-left: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .accounts-label::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+
+    .tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      margin-bottom: 32px;
+    }
+
+    @media (max-width: 800px) {
+      .tiles-grid { grid-template-columns: 1fr; }
+      .tile.total { flex-direction: column; align-items: flex-start; text-align: left; }
+      .total-right { text-align: left; }
+    }
+
+    .tile {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.18s, box-shadow 0.18s, border-color 0.18s, background 0.3s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .tile::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      border-radius: var(--radius) var(--radius) 0 0;
+    }
+
+    .tile.spend::before { background: var(--spend); }
+    .tile.save::before  { background: var(--save); }
+    .tile.share::before { background: var(--share); }
+    .tile.total::before { background: var(--total); }
+
+    .tile:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,0,0,0.1); }
+    .tile.active { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(79,70,229,0.08); }
+    .tile.total { cursor: default; }
+    .tile.total:hover { transform: none; }
+
+    .tile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .tile-label {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .tile.spend .tile-label { color: var(--spend); }
+    .tile.save  .tile-label { color: var(--save); }
+    .tile.share .tile-label { color: var(--share); }
+    .tile.total .tile-label { color: var(--total); }
+
+    .tile-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .tile.spend .tile-icon { background: var(--tile-spend-icon-bg); }
+    .tile.save  .tile-icon { background: var(--tile-save-icon-bg); }
+    .tile.share .tile-icon { background: var(--tile-share-icon-bg); }
+    .tile.total .tile-icon { background: var(--tile-total-icon-bg); }
+
+    .tile-account-id {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-family: monospace;
+      letter-spacing: 0.04em;
+    }
+
+    .tile-balance {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.5px;
+    }
+
+    .tile-balance .currency {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--muted);
+      margin-right: 2px;
+    }
+
+    .tile-footer {
+      margin-top: 12px;
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .tile-footer.up   { color: var(--green); }
+    .tile-footer.down { color: var(--red); }
+
+    .tile-click-hint {
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 10px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      opacity: 0.7;
+    }
+
+    /* ── TRANSACTION PANEL ── */
+    .txn-panel {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.45s cubic-bezier(0.4,0,0.2,1), opacity 0.3s, background 0.3s;
+      opacity: 0;
+    }
+
+    .txn-panel.open {
+      max-height: 800px;
+      opacity: 1;
+    }
+
+    .txn-panel-inner { padding: 28px 28px 24px; }
+
+    .txn-panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .txn-panel-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .txn-panel-title h2 {
+      font-size: 17px;
+      font-weight: 700;
+    }
+
+    .txn-badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .badge-spend { background: var(--badge-spend-bg); color: var(--spend); }
+    .badge-save  { background: var(--badge-save-bg);  color: var(--save); }
+    .badge-share { background: var(--badge-share-bg); color: var(--share); }
+
+    .txn-actions { display: flex; gap: 10px; }
+
+    .btn-export {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.18s;
+    }
+
+    .btn-export:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-subtle); }
+
+    .btn-close-panel {
+      width: 30px;
+      height: 30px;
+      border: none;
+      background: var(--surface);
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.18s;
+    }
+
+    .btn-close-panel:hover { background: var(--surface-hover); }
+
+    /* ── TABLE ── */
+    .txn-table-wrap { overflow-x: auto; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead th {
+      text-align: left;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.07em;
+      color: var(--muted);
+      border-bottom: 2px solid var(--border);
+      background: var(--surface);
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.15s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+
+    tbody td {
+      padding: 13px 14px;
+      vertical-align: middle;
+    }
+
+    .txn-date { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .txn-desc { font-weight: 500; }
+    .txn-desc small { display: block; color: var(--muted); font-size: 11px; font-weight: 400; margin-top: 2px; }
+    .txn-ref  { color: var(--muted); font-size: 11px; font-family: monospace; }
+
+    .amount-credit { color: var(--green); font-weight: 700; text-align: right; }
+    .amount-debit  { color: var(--red);   font-weight: 700; text-align: right; }
+
+    .amount-credit::before { content: '+'; }
+    .amount-debit::before  { content: '−'; }
+
+    .txn-type-badge {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .type-credit { background: var(--green-subtle); color: var(--green-text); }
+    .type-debit  { background: var(--red-subtle);   color: var(--red-text); }
+
+    /* ── PAGINATION ── */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .pagination-info { font-size: 13px; color: var(--muted); }
+
+    .pagination-controls { display: flex; gap: 6px; }
+
+    .btn-page {
+      width: 34px;
+      height: 34px;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      background: var(--card);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+    }
+
+    .btn-page:hover:not(:disabled) { border-color: var(--primary); color: var(--primary); }
+    .btn-page.active { background: var(--primary); border-color: var(--primary); color: white; }
+    .btn-page:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── EXPORT TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 28px;
+      right: 28px;
+      background: #1e293b;
+      color: white;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
+      z-index: 999;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════ LOGIN SCREEN ═══════════════ -->
+<div id="login-screen">
+  <div class="login-card">
+    <button class="theme-toggle login-theme-toggle" onclick="toggleTheme()" id="login-theme-btn" title="Toggle dark mode">🌙</button>
+    <div class="login-logo">
+      <span class="pig">🐷</span>
+      <h1>My Piggy Bank</h1>
+      <p>Manage your money, one oink at a time</p>
+    </div>
+    <div class="login-error" id="login-error">Incorrect username or password. Try again.</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="username" placeholder="Enter username" autocomplete="username" />
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="Enter password" autocomplete="current-password" />
+    </div>
+    <button class="btn-primary" onclick="doLogin()">Sign In</button>
+    <p class="login-hint">Demo: username <strong>admin</strong> · password <strong>piggy123</strong></p>
+  </div>
+</div>
+
+<!-- ═══════════════ DASHBOARD SCREEN ═══════════════ -->
+<div id="dashboard-screen">
+
+  <!-- Top bar -->
+  <nav class="topbar">
+    <div class="topbar-left">
+      <span class="pig">🐷</span>
+      <h1>My Piggy Bank</h1>
+    </div>
+    <div class="topbar-right">
+      <span class="greeting">Hello, <strong>Admin</strong></span>
+      <button class="theme-toggle" onclick="toggleTheme()" id="dash-theme-btn" title="Toggle dark mode">🌙</button>
+      <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+    </div>
+  </nav>
+
+  <div class="main-content">
+
+    <!-- Total Balance (top) -->
+    <div class="tile-total-wrap">
+      <div class="tile total">
+        <div class="total-left">
+          <div class="tile-icon" style="width:52px;height:52px;font-size:24px;background:var(--tile-total-icon-bg)">📊</div>
+          <div>
+            <div class="tile-label" style="color:var(--total);margin-bottom:4px">Total Balance</div>
+            <div class="tile-account-id" style="margin-bottom:0">All accounts combined</div>
+          </div>
+        </div>
+        <div class="total-right">
+          <div class="tile-balance"><span class="currency">$</span>10,766.25</div>
+          <div class="tile-footer up" style="justify-content:flex-end">↑ $260 net this month</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Child accounts -->
+    <div class="accounts-label">Accounts</div>
+    <div class="tiles-grid">
+      <!-- Spend -->
+      <div class="tile spend" id="tile-spend" onclick="togglePanel('spend')">
+        <div class="tile-header">
+          <span class="tile-label">Spend</span>
+          <div class="tile-icon">💳</div>
+        </div>
+        <div class="tile-account-id">ACC · 0001 · 8821</div>
+        <div class="tile-balance"><span class="currency">$</span>1,240.50</div>
+        <div class="tile-footer down">↓ $340 spent this month</div>
+        <div class="tile-click-hint">↕ View transactions</div>
+      </div>
+
+      <!-- Save -->
+      <div class="tile save" id="tile-save" onclick="togglePanel('save')">
+        <div class="tile-header">
+          <span class="tile-label">Save</span>
+          <div class="tile-icon">🏦</div>
+        </div>
+        <div class="tile-account-id">ACC · 0002 · 4473</div>
+        <div class="tile-balance"><span class="currency">$</span>8,905.00</div>
+        <div class="tile-footer up">↑ $500 saved this month</div>
+        <div class="tile-click-hint">↕ View transactions</div>
+      </div>
+
+      <!-- Share -->
+      <div class="tile share" id="tile-share" onclick="togglePanel('share')">
+        <div class="tile-header">
+          <span class="tile-label">Share</span>
+          <div class="tile-icon">🤝</div>
+        </div>
+        <div class="tile-account-id">ACC · 0003 · 7729</div>
+        <div class="tile-balance"><span class="currency">$</span>620.75</div>
+        <div class="tile-footer up">↑ $100 donated this month</div>
+        <div class="tile-click-hint">↕ View transactions</div>
+      </div>
+    </div>
+
+    <!-- Transaction Panel (collapsible) -->
+    <div class="txn-panel" id="txn-panel">
+      <div class="txn-panel-inner">
+        <div class="txn-panel-header">
+          <div class="txn-panel-title">
+            <h2 id="panel-title">Transactions</h2>
+            <span class="txn-badge" id="panel-badge"></span>
+          </div>
+          <div class="txn-actions">
+            <button class="btn-export" onclick="exportFile('xlsx')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/></svg>
+              Export XLSX
+            </button>
+            <button class="btn-export" onclick="exportFile('pdf')">
+              <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 15V3m0 12l-4-4m4 4l4-4M2 17l.621 2.485A2 2 0 004.561 21h14.878a2 2 0 001.94-1.515L22 17"/></svg>
+              Export PDF
+            </button>
+            <button class="btn-close-panel" onclick="closePanel()">✕</button>
+          </div>
+        </div>
+
+        <div class="txn-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Description</th>
+                <th>Reference</th>
+                <th>Type</th>
+                <th style="text-align:right">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="txn-tbody"></tbody>
+          </table>
+        </div>
+
+        <div class="pagination">
+          <div class="pagination-info" id="page-info"></div>
+          <div class="pagination-controls" id="page-controls"></div>
+        </div>
+
+      </div>
+    </div>
+
+  </div><!-- /main-content -->
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── Theme ──
+  const DARK = 'dark';
+  const LIGHT = 'light';
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    const icon = theme === DARK ? '☀️' : '🌙';
+    document.querySelectorAll('.theme-toggle').forEach(b => b.textContent = icon);
+    localStorage.setItem('piggy-theme', theme);
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    applyTheme(current === DARK ? LIGHT : DARK);
+  }
+
+  // Restore saved preference or use system preference
+  (function () {
+    const saved = localStorage.getItem('piggy-theme');
+    if (saved) { applyTheme(saved); return; }
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) applyTheme(DARK);
+  })();
+
+  // ── Mock data ──
+  const ACCOUNTS = {
+    spend: { name: 'Spend Account', badge: 'badge-spend' },
+    save:  { name: 'Save Account',  badge: 'badge-save'  },
+    share: { name: 'Share Account', badge: 'badge-share' },
+  };
+
+  const TXN_TEMPLATES = {
+    spend: [
+      { desc: 'Grocery Store',       sub: 'Whole Foods Market',     type: 'debit',  amount: 87.43 },
+      { desc: 'Netflix Subscription',sub: 'Streaming service',      type: 'debit',  amount: 15.99 },
+      { desc: 'Salary Credit',       sub: 'Monthly payroll',        type: 'credit', amount: 3200.00 },
+      { desc: 'Coffee Shop',         sub: 'Blue Bottle Coffee',     type: 'debit',  amount: 6.50 },
+      { desc: 'Electric Bill',       sub: 'City Power & Light',     type: 'debit',  amount: 112.00 },
+      { desc: 'Online Shopping',     sub: 'Amazon.com',             type: 'debit',  amount: 59.99 },
+      { desc: 'Gym Membership',      sub: 'Fit Life Studios',       type: 'debit',  amount: 40.00 },
+      { desc: 'Restaurant',          sub: 'The Golden Fork',        type: 'debit',  amount: 74.20 },
+      { desc: 'Refund',              sub: 'Purchase return',        type: 'credit', amount: 29.99 },
+      { desc: 'Gas Station',         sub: 'Shell #4421',            type: 'debit',  amount: 52.30 },
+      { desc: 'Phone Bill',          sub: 'T-Mobile',               type: 'debit',  amount: 65.00 },
+      { desc: 'Internet',            sub: 'Comcast Xfinity',        type: 'debit',  amount: 79.99 },
+      { desc: 'Pharmacie',           sub: 'CVS Pharmacy',           type: 'debit',  amount: 23.15 },
+      { desc: 'Bonus Credit',        sub: 'Q1 performance bonus',   type: 'credit', amount: 500.00 },
+      { desc: 'Movie Tickets',       sub: 'AMC Theaters',           type: 'debit',  amount: 32.00 },
+      { desc: 'Book Store',          sub: 'Barnes & Noble',         type: 'debit',  amount: 18.95 },
+      { desc: 'Parking',             sub: 'City Parking Garage',    type: 'debit',  amount: 12.00 },
+      { desc: 'Bank Transfer In',    sub: 'From savings',           type: 'credit', amount: 200.00 },
+      { desc: 'Uber',                sub: 'Ride share',             type: 'debit',  amount: 17.40 },
+      { desc: 'Subscription',        sub: 'Adobe Creative Cloud',   type: 'debit',  amount: 54.99 },
+      { desc: 'Supermarket',         sub: 'Trader Joe\'s',          type: 'debit',  amount: 63.10 },
+      { desc: 'Clothing',            sub: 'H&M Store',              type: 'debit',  amount: 49.00 },
+      { desc: 'Interest Earned',     sub: 'Monthly interest',       type: 'credit', amount: 3.22 },
+      { desc: 'Dentist',             sub: 'Bright Smile Dental',    type: 'debit',  amount: 150.00 },
+      { desc: 'Hardware Store',      sub: 'Home Depot',             type: 'debit',  amount: 35.60 },
+    ],
+    save: [
+      { desc: 'Monthly Deposit',     sub: 'Auto-transfer from spend', type: 'credit', amount: 500.00 },
+      { desc: 'Interest Earned',     sub: 'High-yield savings',       type: 'credit', amount: 22.14 },
+      { desc: 'Emergency Fund',      sub: 'Fund transfer',            type: 'credit', amount: 300.00 },
+      { desc: 'Withdrawal',          sub: 'Transfer to spend',        type: 'debit',  amount: 200.00 },
+      { desc: 'Goal: Vacation',      sub: 'Automatic saving',         type: 'credit', amount: 150.00 },
+      { desc: 'Bonus Savings',       sub: 'Year-end bonus',           type: 'credit', amount: 1000.00 },
+      { desc: 'ATM Withdrawal',      sub: 'Cash withdrawal',          type: 'debit',  amount: 100.00 },
+      { desc: 'Interest Q1',         sub: 'Quarterly credit',         type: 'credit', amount: 45.80 },
+      { desc: 'Savings Deposit',     sub: 'Manual deposit',           type: 'credit', amount: 250.00 },
+      { desc: 'Tax Refund',          sub: 'IRS direct deposit',       type: 'credit', amount: 1240.00 },
+      { desc: 'Goal: Home',          sub: 'Mortgage fund',            type: 'credit', amount: 400.00 },
+      { desc: 'Fee Waived',          sub: 'Monthly fee reversal',     type: 'credit', amount: 5.00 },
+      { desc: 'Transfer Out',        sub: 'To share account',         type: 'debit',  amount: 100.00 },
+      { desc: 'Round-up Savings',    sub: 'Auto round-up',            type: 'credit', amount: 18.32 },
+      { desc: 'Savings Deposit',     sub: 'Payroll deduction',        type: 'credit', amount: 600.00 },
+      { desc: 'Interest Earned',     sub: 'Monthly interest',         type: 'credit', amount: 19.75 },
+      { desc: 'Partial Withdrawal',  sub: 'Medical expense',          type: 'debit',  amount: 350.00 },
+      { desc: 'Automatic Deposit',   sub: 'Recurring transfer',       type: 'credit', amount: 500.00 },
+      { desc: 'Interest Earned',     sub: 'Monthly interest',         type: 'credit', amount: 21.00 },
+      { desc: 'Goal: Education',     sub: '529 contribution',         type: 'debit',  amount: 200.00 },
+      { desc: 'Deposit',             sub: 'One-time deposit',         type: 'credit', amount: 750.00 },
+    ],
+    share: [
+      { desc: 'Donation – Red Cross',  sub: 'Charity transfer',      type: 'debit',  amount: 50.00 },
+      { desc: 'Gift – Birthday',       sub: 'Friend\'s birthday',    type: 'debit',  amount: 40.00 },
+      { desc: 'Monthly Contribution',  sub: 'Auto-fund share acct',  type: 'credit', amount: 100.00 },
+      { desc: 'School Fundraiser',     sub: 'Lincoln Elementary',    type: 'debit',  amount: 25.00 },
+      { desc: 'Community Garden',      sub: 'Local non-profit',      type: 'debit',  amount: 15.00 },
+      { desc: 'Transfer In',           sub: 'From save account',     type: 'credit', amount: 100.00 },
+      { desc: 'Gift Card',             sub: 'Neighbor thank-you',    type: 'debit',  amount: 20.00 },
+      { desc: 'Animal Shelter',        sub: 'Monthly pledge',        type: 'debit',  amount: 30.00 },
+      { desc: 'Interest Earned',       sub: 'Monthly interest',      type: 'credit', amount: 1.22 },
+      { desc: 'Food Bank',             sub: 'Harvest Hope',          type: 'debit',  amount: 45.00 },
+      { desc: 'Fundraiser Run',        sub: 'Charity 5K',            type: 'debit',  amount: 35.00 },
+      { desc: 'Birthday Fund',         sub: 'Family contribution',   type: 'credit', amount: 50.00 },
+      { desc: 'Library Donation',      sub: 'City Public Library',   type: 'debit',  amount: 10.00 },
+      { desc: 'Transfer In',           sub: 'Monthly top-up',        type: 'credit', amount: 100.00 },
+      { desc: 'Medical Charity',       sub: 'St. Jude\'s',           type: 'debit',  amount: 25.00 },
+      { desc: 'Disaster Relief',       sub: 'UNICEF',                type: 'debit',  amount: 60.00 },
+      { desc: 'Neighbor Gift',         sub: 'Moving away gift',      type: 'debit',  amount: 30.00 },
+      { desc: 'Interest Earned',       sub: 'Quarterly interest',    type: 'credit', amount: 2.15 },
+      { desc: 'Scholarship Fund',      sub: 'University fund',       type: 'debit',  amount: 100.00 },
+      { desc: 'Team Lunch',            sub: 'Office farewell',       type: 'debit',  amount: 18.00 },
+    ],
+  };
+
+  function makeTransactions(account) {
+    const rows = TXN_TEMPLATES[account];
+    const today = new Date();
+    return rows.map((r, i) => {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i * 2);
+      return {
+        date: d.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }),
+        desc: r.desc,
+        sub: r.sub,
+        ref: 'TXN' + String(Math.floor(Math.random() * 900000) + 100000),
+        type: r.type,
+        amount: r.amount,
+      };
+    });
+  }
+
+  // ── State ──
+  let currentAccount = null;
+  let currentPage = 1;
+  const PAGE_SIZE = 5;
+
+  // ── Auth ──
+  function doLogin() {
+    const u = document.getElementById('username').value.trim();
+    const p = document.getElementById('password').value;
+    const err = document.getElementById('login-error');
+    if (u === 'admin' && p === 'piggy123') {
+      err.style.display = 'none';
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard-screen').style.display = 'block';
+    } else {
+      err.style.display = 'block';
+    }
+  }
+
+  function doLogout() {
+    currentAccount = null;
+    closePanel();
+    document.getElementById('dashboard-screen').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('username').value = '';
+    document.getElementById('password').value = '';
+  }
+
+  // Allow Enter key on login
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.getElementById('login-screen').style.display !== 'none') doLogin();
+  });
+
+  // ── Panel ──
+  function togglePanel(account) {
+    if (currentAccount === account) { closePanel(); return; }
+    currentAccount = account;
+    currentPage = 1;
+    // Update active tile
+    ['spend','save','share'].forEach(a => {
+      document.getElementById('tile-'+a).classList.toggle('active', a === account);
+    });
+    // Set panel header
+    document.getElementById('panel-title').textContent = ACCOUNTS[account].name + ' — Transactions';
+    const badge = document.getElementById('panel-badge');
+    badge.textContent = account;
+    badge.className = 'txn-badge ' + ACCOUNTS[account].badge;
+    // Render and open
+    renderTable();
+    document.getElementById('txn-panel').classList.add('open');
+    setTimeout(() => document.getElementById('txn-panel').scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+  }
+
+  function closePanel() {
+    currentAccount = null;
+    document.getElementById('txn-panel').classList.remove('open');
+    ['spend','save','share'].forEach(a => document.getElementById('tile-'+a).classList.remove('active'));
+  }
+
+  // ── Table ──
+  function renderTable() {
+    const data = makeTransactions(currentAccount);
+    const total = data.length;
+    const totalPages = Math.ceil(total / PAGE_SIZE);
+    const start = (currentPage - 1) * PAGE_SIZE;
+    const slice = data.slice(start, start + PAGE_SIZE);
+
+    const tbody = document.getElementById('txn-tbody');
+    tbody.innerHTML = slice.map(t => `
+      <tr>
+        <td class="txn-date">${t.date}</td>
+        <td class="txn-desc">${t.desc}<small>${t.sub}</small></td>
+        <td class="txn-ref">${t.ref}</td>
+        <td><span class="txn-type-badge type-${t.type}">${t.type}</span></td>
+        <td class="${t.type === 'credit' ? 'amount-credit' : 'amount-debit'}">$${t.amount.toFixed(2)}</td>
+      </tr>
+    `).join('');
+
+    document.getElementById('page-info').textContent =
+      `Showing ${start + 1}–${Math.min(start + PAGE_SIZE, total)} of ${total} transactions`;
+
+    renderPagination(totalPages);
+  }
+
+  function renderPagination(totalPages) {
+    const ctrl = document.getElementById('page-controls');
+    let html = `<button class="btn-page" ${currentPage===1?'disabled':''} onclick="goPage(${currentPage-1})">‹</button>`;
+    for (let i = 1; i <= totalPages; i++) {
+      html += `<button class="btn-page ${i===currentPage?'active':''}" onclick="goPage(${i})">${i}</button>`;
+    }
+    html += `<button class="btn-page" ${currentPage===totalPages?'disabled':''} onclick="goPage(${currentPage+1})">›</button>`;
+    ctrl.innerHTML = html;
+  }
+
+  function goPage(p) {
+    currentPage = p;
+    renderTable();
+  }
+
+  // ── Export ──
+  function exportFile(format) {
+    const toast = document.getElementById('toast');
+    const label = format === 'pdf' ? 'PDF' : 'Excel';
+    const icon  = format === 'pdf' ? '📄' : '📊';
+    toast.innerHTML = `${icon} Exporting ${ACCOUNTS[currentAccount].name} as ${label}…`;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 2800);
+  }
+</script>
+</body>
+</html>

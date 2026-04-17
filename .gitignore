@@ -1,0 +1,22 @@
+# Dependencies
+node_modules/
+
+# SQLite database (runtime data)
+server/piggy.db
+
+# Build output
+client/dist/
+
+# Environment
+.env
+.env.local
+
+# Claude Code local settings
+.claude/
+
+# OS
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
