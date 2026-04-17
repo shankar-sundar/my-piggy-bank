@@ -1,7 +1,7 @@
 const router = require('express').Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const db = require('../db');
+const { users } = require('../store');
 
 const SECRET = process.env.JWT_SECRET || 'piggy-secret-key';
 
@@ -9,7 +9,7 @@ router.post('/login', (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) return res.status(400).json({ error: 'Username and password required' });
 
-  const user = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  const user = users.find(u => u.username === username);
   if (!user || !bcrypt.compareSync(password, user.password_hash))
     return res.status(401).json({ error: 'Invalid credentials' });
 
