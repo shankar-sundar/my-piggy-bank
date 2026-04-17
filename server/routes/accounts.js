@@ -1,29 +1,50 @@
 const router = require('express').Router();
-const { accounts, transactions } = require('../store');
+const supabase = require('../supabase');
 const auth = require('../middleware/auth');
 
 const PAGE_SIZE = 20;
 
-router.get('/', auth, (req, res) => {
-  const userAccounts = accounts.filter(a => a.user_id === req.user.userId);
-  res.json(userAccounts);
+router.get('/', auth, async (req, res) => {
+  const { data, error } = await supabase
+    .from('accounts')
+    .select('id, type, account_number, balance')
+    .eq('user_id', req.user.userId)
+    .order('id');
+
+  if (error) return res.status(500).json({ error: error.message });
+  res.json(data);
 });
 
-router.get('/:id/transactions', auth, (req, res) => {
+router.get('/:id/transactions', auth, async (req, res) => {
   const accountId = parseInt(req.params.id);
-  const account = accounts.find(a => a.id === accountId && a.user_id === req.user.userId);
+  const page = Math.max(1, parseInt(req.query.page) || 1);
+  const from = (page - 1) * PAGE_SIZE;
+
+  const { data: account } = await supabase
+    .from('accounts')
+    .select('id')
+    .eq('id', accountId)
+    .eq('user_id', req.user.userId)
+    .single();
+
   if (!account) return res.status(404).json({ error: 'Account not found' });
 
-  const page = Math.max(1, parseInt(req.query.page) || 1);
-  const accTxns = transactions
-    .filter(t => t.account_id === accountId)
-    .sort((a, b) => b.txn_date.localeCompare(a.txn_date) || b.id - a.id);
+  const { data, error, count } = await supabase
+    .from('transactions')
+    .select('*', { count: 'exact' })
+    .eq('account_id', accountId)
+    .order('txn_date', { ascending: false })
+    .order('id', { ascending: false })
+    .range(from, from + PAGE_SIZE - 1);
 
-  const total = accTxns.length;
-  const totalPages = Math.ceil(total / PAGE_SIZE);
-  const rows = accTxns.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  if (error) return res.status(500).json({ error: error.message });
 
-  res.json({ total, page, totalPages, transactions: rows });
+  res.json({
+    total: count,
+    page,
+    totalPages: Math.ceil(count / PAGE_SIZE),
+    transactions: data,
+  });
 });
 
 module.exports = router;
